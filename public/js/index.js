@@ -8,25 +8,29 @@ socket.on('disconnect', function () {
     console.log('disconnected');
 });
 
-socket.on('newMessage', function (message) {
-    console.log(message);
-    var li = jQuery('<li></li>');
-    li.text(`${message.from}: ${message.text}`);
+function generateNewMessage(message, templateId) {
+    let formattedTime = moment(message.createdAt).format('hh:mm');
+    let template = jQuery('#' + templateId).html();
+    let html = Mustache.render(template, {
+        from: message.from,
+        text: message.text,
+        formattedTime,
+        url: message.url
+    });
 
-    jQuery('#messages').append(li);
+    jQuery('#messages').append(html);
+}
+
+socket.on('newMessage', function (message) {
+    generateNewMessage(message, 'message-template');
 });
 
 socket.on('newLocationMessage', function (message) {
-    var li = jQuery('<li></li>');
-    var a = jQuery('<a target="_blank">My current location</a>');
-
-    li.text(`${message.from}: `);
-    a.attr('href', message.url);
-    li.append(a);
-    jQuery('#messages').append(li);
+    message.text = 'My current location';
+    generateNewMessage(message, 'location-message-template');
 });
 
-jQuery('#message-form').on('submit', function(e) {
+jQuery('#message-form').on('submit', function (e) {
     e.preventDefault();
     let messageBox = jQuery('[name=message]');
     socket.emit('createMessage', {
@@ -52,8 +56,8 @@ locationButton.on('click', (e) => {
             longitude: position.coords.longitude
         });
         locationButton.removeAttr('disabled').text('Sending location');;
-    }, function () {   
-        locationButton.removeAttr('disabled').text('Sending location');; 
+    }, function () {
+        locationButton.removeAttr('disabled').text('Sending location');;
         alert('Error');
     });
 });
