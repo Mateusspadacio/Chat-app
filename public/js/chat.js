@@ -1,7 +1,7 @@
 var socket = io();
 
 socket.on('connect', function () {
-    let params = jQuery.deparam(window.location.search);
+    let params = getParams();
 
     socket.emit('join', params, function (err) {
         if (err) {
@@ -18,10 +18,9 @@ socket.on('disconnect', function () {
 });
 
 socket.on('updateUserList', function (users) {
-    console.log('no evento')
     let ol = jQuery('<ol></ol>');
-    users.forEach(function(user) {
-        ol.append(jQuery('<li></li>').text(user));
+    users.forEach(function (user) {
+        ol.append(jQuery('<li></li>').text(user.name));
     });
 
     jQuery('#users').html(ol);
@@ -53,6 +52,10 @@ function generateNewMessage(message, templateId) {
 
     jQuery('#messages').append(html);
     scrollToBottom();
+}
+
+function getParams() {
+    return jQuery.deparam(window.location.search);
 }
 
 socket.on('newMessage', function (message) {

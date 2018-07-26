@@ -25,13 +25,21 @@ io.on('connection', (socket) => {
             return callback("This is not a real string");
         }
 
-        socket.join(params.room);
-        users.removeUser(socket.id);
-        users.addUser(socket.id, params.name, params.room);
+        let room = params.room.toLowerCase();
 
-        io.to(params.room).emit('updateUserList', users.getUserList(params.room));
+        let userExists = users.getUserList(room).find(user => user.name === params.name);
+
+        if (userExists) {
+            return callback("This name has already in use");
+        }
+
+        socket.join(room);
+        users.removeUser(socket.id);
+        users.addUser(socket.id, params.name, room);
+
+        io.to(room).emit('updateUserList', users.getUserList(room));
         socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
-        socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} has join`));
+        socket.broadcast.to(room).emit('newMessage', generateMessage('Admin', `${params.name} has join`));
         callback();
     });
 
